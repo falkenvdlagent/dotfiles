@@ -13,7 +13,7 @@ Kun's walkthrough of the original setup: https://youtu.be/5N-okeDdIuI
 - **No nix-darwin, no Homebrew, no macOS defaults.** Only the Home Manager part is used, as a standalone `homeConfigurations` flake output.
 - **GUI apps live outside Nix.** WezTerm (AppImage), herdr and Claude Code are installed normally. Nix-built GPU apps need extra setup (nixGL) on a non-NixOS distro.
 - **Pi configuration removed.**
-- **My own configs** for WezTerm, herdr and Claude Code, plus an empty shared agent policy (`home/AGENTS.md`) to fill in.
+- **My own configs** for WezTerm, herdr and Claude Code, while `home/AGENTS.md` keeps Kun's shared agent policy.
 
 ## What you get
 
