@@ -2,12 +2,18 @@
 
 let
   dotfiles = "${config.home.homeDirectory}/.dotfiles";
+  link = path: config.lib.file.mkOutOfStoreSymlink "${dotfiles}/${path}";
 in
 
 {
   home.username = user;
-  home.homeDirectory = "/Users/${user}";
+  home.homeDirectory = "/home/${user}";
   home.stateVersion = "24.11";
+
+  # Non-NixOS distro (AlmaLinux): wire Nix paths, XDG dirs and fonts into the host.
+  targets.genericLinux.enable = true;
+  programs.home-manager.enable = true;
+
   home.packages = with pkgs; [
     # cli i use constantly
     ripgrep   # fast search
@@ -16,6 +22,7 @@ in
     jq        # json on the command line
     lazygit
     neovim
+    gcc       # nvim-treesitter compiles parsers
     # the font everything renders in
     nerd-fonts.hack
   ];
@@ -27,6 +34,7 @@ in
     autosuggestion.enable = true;      # ghost text from history
     syntaxHighlighting.enable = true;  # commands turn green when valid
     initContent = ''
+      setopt COMPLETE_IN_WORD
       bindkey '^f' autosuggest-accept
     '';
     shellAliases = {
@@ -53,30 +61,16 @@ in
     };
   };
 
-  # Edit-in-place: the real file stays in my repo, ~/.config just points at it.
-  home.file.".config/wezterm".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/wezterm";
-  home.file.".config/nvim".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/nvim";
-  home.file.".config/herdr".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.config/herdr";
-  home.file.".claude/settings.json".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.claude/settings.json";
+  # Edit-in-place: the real file stays in this repo, ~/.config just points at it.
+  # WezTerm and herdr themselves are installed outside Nix (AppImage / herdr installer).
+  home.file.".config/wezterm".source = link "home/.config/wezterm";
+  home.file.".config/nvim".source = link "home/.config/nvim";
+  # Only the config file: ~/.config/herdr also holds sockets, logs and sessions.
+  home.file.".config/herdr/config.toml".source = link "home/.config/herdr/config.toml";
+  home.file.".claude/settings.json".source = link "home/.claude/settings.json";
 
-  # Keep Pi's credential and runtime state local by linking only authored files and directories.
-  home.file.".pi/agent/themes".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.pi/agent/themes";
-  home.file.".pi/agent/extensions".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.pi/agent/extensions";
-  home.file.".pi/agent/models.json".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.pi/agent/models.json";
-  home.file.".pi/agent/settings.json".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/.pi/agent/settings.json";
-
-  home.file.".claude/CLAUDE.md".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
-  home.file.".codex/AGENTS.md".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
-  home.file.".config/opencode/AGENTS.md".source =
-    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/home/AGENTS.md";
+  # One shared agent policy for Claude, Codex and opencode.
+  home.file.".claude/CLAUDE.md".source = link "home/AGENTS.md";
+  home.file.".codex/AGENTS.md".source = link "home/AGENTS.md";
+  home.file.".config/opencode/AGENTS.md".source = link "home/AGENTS.md";
 }
