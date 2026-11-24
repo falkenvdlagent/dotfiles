@@ -61,6 +61,9 @@ in
     };
   };
 
+  # Lets bare `home-manager` commands (news, generations, switch) find this flake.
+  home.file.".config/home-manager".source = config.lib.file.mkOutOfStoreSymlink dotfiles;
+
   # Edit-in-place: the real file stays in this repo, ~/.config just points at it.
   # WezTerm and herdr themselves are installed outside Nix (AppImage / herdr installer).
   home.file.".config/wezterm".source = link "home/.config/wezterm";
