@@ -3,6 +3,7 @@
 - Never use the em dash "—". Use plain dash "-" instead
 - Never add AI or agent attribution to anything you write: no "Co-Authored-By" trailer, no "Generated with Claude Code" (or any other tool) line, no agent name or signature - not in commit messages, PR or issue descriptions, comments, code, docs, or any other output
 - Never manually modify CHANGELOG.md files or any files that are marked as auto-generated
+- No sudo is possible for agents. If a step requires sudo, raise it to the user to run manually, with the exact command and why it is needed
 - When making technical decisions, do not give much weight to development cost.
   Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
 - For one-off or infrequent operational work, start with the simplest direct end-to-end path. Do not build wrappers, control planes, policy layers, custom verifiers, or automation unless the direct path exposes a concrete blocker or repeated need that justifies the added machinery.
