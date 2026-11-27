@@ -18,7 +18,7 @@ launch_if_missing() {
 
     if [[ -z "$id" ]]; then
         case "$app" in
-            herdr) herdr-app >/dev/null 2>&1 & ;;
+            herdr) ( cd /home/falkenvdlagent/firstmate && herdr-app >/dev/null 2>&1 ) & ;;
             files) nautilus --new-window >/dev/null 2>&1 & ;;
             chrome) google-chrome --new-window >/dev/null 2>&1 & ;;
             term) wezterm start --always-new-process --class org.wezfurlong.wezterm-terminal >/dev/null 2>&1 & ;;
