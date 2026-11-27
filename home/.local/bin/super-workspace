@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+get_id() {
+    wctl list --json | jq -r \
+        --arg class "$1" \
+        '[.[] | select(.wm_class == $class)] | first | .id // empty'
+}
+
+launch_if_missing() {
+    local class="$1"
+    local app="$2"
+    local id
+
+    id=$(get_id "$class")
+
+    if [[ -z "$id" ]]; then
+        case "$app" in
+            wezterm) wezterm >/dev/null 2>&1 & ;;
+            files) nautilus --new-window >/dev/null 2>&1 & ;;
+            chrome) google-chrome --new-window >/dev/null 2>&1 & ;;
+        esac
+
+        for _ in {1..30}; do
+            sleep 0.5
+            id=$(get_id "$class")
+            [[ -n "$id" ]] && break
+        done
+
+        if [[ -z "$id" ]]; then
+            echo "Could not find $class" >&2
+            exit 1
+        fi
+
+        echo "CREATED"
+    else
+        echo "$id"
+    fi
+}
+
+WEZTERM_RESULT=$(launch_if_missing "org.wezfurlong.wezterm" wezterm)
+FILES_RESULT=$(launch_if_missing "org.gnome.Nautilus" files)
+CHROME_RESULT=$(launch_if_missing "google-chrome" chrome)
+
+CREATED=false
+
+[[ "$WEZTERM_RESULT" == "CREATED" || "$FILES_RESULT" == "CREATED" || "$CHROME_RESULT" == "CREATED" ]] && CREATED=true
+
+WEZTERM=$(get_id "org.wezfurlong.wezterm")
+FILES=$(get_id "org.gnome.Nautilus")
+CHROME=$(get_id "google-chrome")
+
+if [[ "$CREATED" == "true" ]]; then
+    NEEDS_RESTORE=true
+else
+    NEEDS_RESTORE=$(
+        wctl list --json | jq -r \
+            --argjson wezterm "$WEZTERM" \
+            --argjson files "$FILES" \
+            --argjson chrome "$CHROME" \
+            '[.[] | select(
+                .id == $wezterm or
+                .id == $files or
+                .id == $chrome
+            ) | (.is_minimized or .is_hidden)] | any'
+    )
+fi
+
+if [[ "$NEEDS_RESTORE" == "true" ]]; then
+    wctl activate "$WEZTERM" --no-animation
+    wctl activate "$FILES" --no-animation
+    wctl activate "$CHROME" --no-animation
+
+    wctl place "$FILES" left top 50% 100%
+    wctl place "$CHROME" right top 50% 75%
+    wctl place "$WEZTERM" right bottom 50% 25%
+
+    echo "Workspace restored"
+else
+    wctl minimize "$WEZTERM" --no-animation
+    wctl minimize "$FILES" --no-animation
+    wctl minimize "$CHROME" --no-animation
+
+    echo "Workspace hidden"
+fi

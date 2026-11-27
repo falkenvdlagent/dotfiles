@@ -71,6 +71,7 @@ in
   # Only the config file: ~/.config/herdr also holds sockets, logs and sessions.
   home.file.".config/herdr/config.toml".source = link "home/.config/herdr/config.toml";
   home.file.".claude/settings.json".source = link "home/.claude/settings.json";
+  home.file.".local/bin/super-workspace".source = link "home/.local/bin/super-workspace";
 
   # One shared agent policy for Claude, Codex and opencode.
   home.file.".claude/CLAUDE.md".source = link "home/AGENTS.md";
