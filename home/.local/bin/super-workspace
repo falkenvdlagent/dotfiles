@@ -18,10 +18,10 @@ launch_if_missing() {
 
     if [[ -z "$id" ]]; then
         case "$app" in
-            wezterm) wezterm >/dev/null 2>&1 & ;;
-            wezterm2) wezterm start --always-new-process --class org.wezfurlong.wezterm-terminal >/dev/null 2>&1 & ;;
+            herdr) herdr-app >/dev/null 2>&1 & ;;
             files) nautilus --new-window >/dev/null 2>&1 & ;;
             chrome) google-chrome --new-window >/dev/null 2>&1 & ;;
+            term) wezterm start --always-new-process --class org.wezfurlong.wezterm-terminal >/dev/null 2>&1 & ;;
         esac
 
         for _ in {1..30}; do
@@ -41,55 +41,55 @@ launch_if_missing() {
     fi
 }
 
-WEZTERM_RESULT=$(launch_if_missing "org.wezfurlong.wezterm" wezterm)
+HERDR_RESULT=$(launch_if_missing "herdr-app" herdr)
 FILES_RESULT=$(launch_if_missing "org.gnome.Nautilus" files)
 CHROME_RESULT=$(launch_if_missing "google-chrome" chrome)
-WEZTERM2_RESULT=$(launch_if_missing "org.wezfurlong.wezterm-terminal" wezterm2)
+TERM_RESULT=$(launch_if_missing "org.wezfurlong.wezterm-terminal" term)
 
 CREATED=false
 
-[[ "$WEZTERM_RESULT" == "CREATED" || "$FILES_RESULT" == "CREATED" || "$CHROME_RESULT" == "CREATED" || "$WEZTERM2_RESULT" == "CREATED" ]] && CREATED=true
+[[ "$HERDR_RESULT" == "CREATED" || "$FILES_RESULT" == "CREATED" || "$CHROME_RESULT" == "CREATED" || "$TERM_RESULT" == "CREATED" ]] && CREATED=true
 
-WEZTERM=$(get_id "org.wezfurlong.wezterm")
+HERDR=$(get_id "herdr-app")
 FILES=$(get_id "org.gnome.Nautilus")
 CHROME=$(get_id "google-chrome")
-WEZTERM2=$(get_id "org.wezfurlong.wezterm-terminal")
+TERM=$(get_id "org.wezfurlong.wezterm-terminal")
 
 if [[ "$CREATED" == "true" ]]; then
     NEEDS_RESTORE=true
 else
     NEEDS_RESTORE=$(
         wctl list --json | jq -r \
-            --argjson wezterm "$WEZTERM" \
+            --argjson herdr "$HERDR" \
             --argjson files "$FILES" \
             --argjson chrome "$CHROME" \
-            --argjson wezterm2 "$WEZTERM2" \
+            --argjson term "$TERM" \
             '[.[] | select(
-                .id == $wezterm or
+                .id == $herdr or
                 .id == $files or
                 .id == $chrome or
-                .id == $wezterm2
+                .id == $term
             ) | (.is_minimized or .is_hidden)] | any'
     )
 fi
 
 if [[ "$NEEDS_RESTORE" == "true" ]]; then
-    wctl activate "$WEZTERM" --no-animation
+    wctl activate "$HERDR" --no-animation
     wctl activate "$FILES" --no-animation
     wctl activate "$CHROME" --no-animation
-    wctl activate "$WEZTERM2" --no-animation
+    wctl activate "$TERM" --no-animation
 
-    wctl place "$WEZTERM" left top 50% 75%
+    wctl place "$HERDR" left top 50% 75%
     wctl place "$FILES" left bottom 50% 25%
     wctl place "$CHROME" right top 50% 75%
-    wctl place "$WEZTERM2" right bottom 50% 25%
+    wctl place "$TERM" right bottom 50% 25%
 
     echo "Workspace restored"
 else
-    wctl minimize "$WEZTERM" --no-animation
+    wctl minimize "$HERDR" --no-animation
     wctl minimize "$FILES" --no-animation
     wctl minimize "$CHROME" --no-animation
-    wctl minimize "$WEZTERM2" --no-animation
+    wctl minimize "$TERM" --no-animation
 
     echo "Workspace hidden"
 fi
